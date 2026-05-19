@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiGrid, FiList, FiSliders, FiX } from 'react-icons/fi';
@@ -11,7 +11,8 @@ import API from '@/utils/axiosConfig';
 import fallbackProducts from '@/utils/fallbackProducts';
 import Loading from '@/components/common/Loading';
 
-export default function ProductsPage() {
+// Inner component that uses useSearchParams
+function ProductsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -38,7 +39,6 @@ export default function ProductsPage() {
       setLoading(true);
       setError(null);
 
-      // Query parameters build karo
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('limit', 12);
@@ -55,7 +55,6 @@ export default function ProductsPage() {
         setPagination(data.pagination);
       }
     } catch (error) {
-      // Network errors (no response) -> try frontend fallback data
       console.error('Fetch error:', error);
       if (!error.response) {
         console.warn('Network error detected; using client-side fallback products.');
@@ -70,13 +69,11 @@ export default function ProductsPage() {
     }
   };
 
-  // Initial load aur filter change par products fetch karo
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProducts(pagination.currentPage);
   }, [searchQuery, categoryFilter, sortBy]);
 
-  // Page change handler
   const handlePageChange = (newPage) => {
     fetchProducts(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -125,7 +122,6 @@ export default function ProductsPage() {
 
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-          {/* Left side - Filter toggle aur sort */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -148,7 +144,6 @@ export default function ProductsPage() {
             </select>
           </div>
 
-          {/* Right side - View toggle aur results count */}
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600 dark:text-gray-400">
               {products.length} products showing
@@ -178,7 +173,6 @@ export default function ProductsPage() {
             <div className={`w-72 bg-white dark:bg-gray-800 h-full md:h-auto overflow-y-auto shadow-xl md:shadow-none rounded-r-xl md:rounded-none p-4 ${
               showFilters ? 'relative z-50' : ''
             }`}>
-              {/* Close button for mobile */}
               <button
                 onClick={() => setShowFilters(false)}
                 className="md:hidden mb-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
@@ -261,5 +255,18 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main exported component with Suspense
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-dark pt-20 flex items-center justify-center">
+        <Loading />
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }
