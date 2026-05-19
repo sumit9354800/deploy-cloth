@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiCheckCircle, FiPackage, FiTruck, FiClock, FiArrowRight } from 'react-icons/fi';
 
-export default function OrderSuccessPage() {
+// Inner component that uses useSearchParams (must be wrapped in Suspense)
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get('orderId');
@@ -13,6 +14,7 @@ export default function OrderSuccessPage() {
 
   // Auto-redirect after 10 seconds
   useEffect(() => {
+    // Only redirect if no orderId (but let the component render for a moment)
     if (!orderId) {
       router.push('/');
       return;
@@ -31,6 +33,17 @@ export default function OrderSuccessPage() {
 
     return () => clearInterval(timer);
   }, [orderId, router]);
+
+  // If no orderId after all, show a fallback (optional)
+  if (!orderId) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-dark pt-20">
+        <div className="container mx-auto px-4 py-20 text-center">
+          <p className="text-gray-600 dark:text-gray-400">No order information found. Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark pt-20">
@@ -77,7 +90,7 @@ export default function OrderSuccessPage() {
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href={`/orders/my-orders`}
+              href="/orders/my-orders"
               className="inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition-all"
             >
               View My Orders
@@ -98,5 +111,21 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-dark pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading order details...</p>
+        </div>
+      </div>
+    }>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
