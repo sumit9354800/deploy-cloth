@@ -29,6 +29,8 @@ function ProductsContent() {
   const dispatch = useDispatch();
   const { products, filters } = useSelector((state) => state.products);
 
+  console.log(products)
+
   // URL se search query aur category lo
   const searchQuery = searchParams.get('search') || '';
   const categoryFilter = searchParams.get('category') || '';

@@ -18,7 +18,7 @@ connectDB();
 
 // Middlewares (Bich mein kaam karne wale functions)
 // Configure CORS origins via env: FRONTEND_URLS as comma separated list
-const frontendUrls = (`https://deploy-cloth-yg7w.vercel.app/` || 'http://localhost:3000').split(',').map(u => u.trim());
+const frontendUrls = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',').map(u => u.trim());
 console.log('Allowed frontend origins:', frontendUrls);
 app.use(cors({
   origin: function (origin, callback) {
